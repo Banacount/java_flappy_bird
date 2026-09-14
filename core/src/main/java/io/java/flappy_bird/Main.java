@@ -5,6 +5,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 
@@ -16,7 +17,8 @@ public class Main implements ApplicationListener {
 
     // Define entities
     Birdie bird;
-    Obstacle test_obs;
+    Obstacle test_obs_bottom;
+    Obstacle test_obs_up;
 
     @Override
     public void create() {
@@ -26,7 +28,9 @@ public class Main implements ApplicationListener {
 
         // Initialize entities
         bird = new Birdie(0, 1, viewport.getWorldHeight() / 2f);
-        test_obs = new Obstacle(viewport.getWorldWidth(), 0, 2f);
+        test_obs_bottom = new Obstacle(viewport.getWorldWidth(), 0, 2f);
+        test_obs_up = new Obstacle(viewport.getWorldWidth(), 1f, 2f);
+        GameStateHandler.ObstacleHandler(test_obs_up, test_obs_bottom, viewport);
     }
 
     @Override
@@ -55,13 +59,17 @@ public class Main implements ApplicationListener {
         if (jumpExecuted) {
             bird.jump();
         }
+
     }
     public void logic () {
         float delta = Gdx.graphics.getDeltaTime();
 
         // Update entities
         bird.update(delta, viewport);
-        test_obs.move(delta, viewport);
+        test_obs_bottom.move(delta, viewport);
+        test_obs_up.move(delta, viewport);
+
+        test_obs_bottom.obstacleControlBottom(test_obs_up, viewport);
     }
     public void draw () {
         // Clear screen
@@ -70,11 +78,12 @@ public class Main implements ApplicationListener {
         // Draw your application here.
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
         shapeRenderer.setProjectionMatrix(viewport.getCamera().combined);
-        shapeRenderer.setColor(Color.GRAY);
+        shapeRenderer.setColor(Color.YELLOW);
         shapeRenderer.rect(0, 0, 6f, 4f);
         shapeRenderer.end();
 
-        test_obs.drawRect(shapeRenderer, viewport);
+        test_obs_up.drawRect(shapeRenderer, viewport);
+        test_obs_bottom.drawRect(shapeRenderer, viewport);
         bird.drawRect(shapeRenderer, viewport);
     }
 

@@ -1,6 +1,7 @@
 package io.java.flappy_bird;
 
 import com.badlogic.gdx.utils.viewport.Viewport;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.Color;
@@ -29,7 +30,7 @@ class Birdie extends GameEntity {
 
     Birdie (float jump_height, float x, float y) {
         super(new Rectangle(x, y, 0.3f, 0.3f));
-        jumpHeight = (jump_height <= 0) ? 2.8f : jump_height;
+        jumpHeight = (jump_height <= 0) ? 2.3f : jump_height;
     }
 
     void jump () {
@@ -57,12 +58,45 @@ class Obstacle extends GameEntity {
     Obstacle (float x, float y, float height)
     {
         super(new Rectangle(x, y, 0.4f, height));
+
+        // Auto values if all parameters are 0
+        //if (x == 0 && y == 0 && height == 0)
+        //{
+        //}
+        // Will do something with this in the future.
     }
 
     void move (float delta, Viewport viewport) {
-        if (this.rect.x > 0 - this.rect.width)
+        if (this.rect.x > 0 - this.rect.width) {
             this.rect.x -= delta * obstacleSlideSpeed;
-        else
+        }
+        else {
             this.rect.x = viewport.getWorldWidth();
+        }
+    }
+
+    void obstacleControlBottom (Obstacle other, Viewport viewport) {
+        if (this.rect.x < 0 - this.rect.width)
+        {
+            randomHoleTrigger(other, viewport);
+        }
+    }
+
+    void randomHoleTrigger (Obstacle other, Viewport viewport)
+    {
+        float randomHeight = MathUtils.random(0.3f, 3f);
+        float topHeight = (viewport.getWorldHeight() - randomHeight) - 1f;
+        float bottomMarginTopObstacle = randomHeight+1f;
+
+        this.rect.height = randomHeight;
+        other.rect.height = topHeight;
+        other.rect.y = bottomMarginTopObstacle;
+    }
+}
+
+class GameStateHandler {
+    public static void ObstacleHandler (Obstacle top, Obstacle bottom, Viewport viewport)
+    {
+        bottom.randomHoleTrigger(top, viewport);
     }
 }
