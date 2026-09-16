@@ -48,6 +48,8 @@ class Birdie extends GameEntity {
         else {
             this.velocity_y = 0;
             this.rect.y = viewport.getWorldHeight() / 2;
+            System.out.println("L you fukin folded");
+            System.exit(0);
         }
     }
 }
@@ -94,9 +96,29 @@ class Obstacle extends GameEntity {
     }
 }
 
-class GameStateHandler {
-    public static void ObstacleHandler (Obstacle top, Obstacle bottom, Viewport viewport)
+class ObstaclePiece {
+    Obstacle top_part, bottom_part;
+
+    ObstaclePiece (Viewport viewport, float x_offset)
     {
-        bottom.randomHoleTrigger(top, viewport);
+        bottom_part = new Obstacle(viewport.getWorldWidth() + x_offset, 0, 2f);
+        top_part = new Obstacle(viewport.getWorldWidth() + x_offset, 1f, 2f);
+
+        bottom_part.randomHoleTrigger(top_part, viewport);
     }
+
+    void updatePiece (float delta, Viewport viewport) {
+        bottom_part.move(delta, viewport);
+        top_part.move(delta, viewport);
+        bottom_part.obstacleControlBottom(top_part, viewport);
+    }
+
+    void drawPiece (ShapeRenderer shapeRenderer, Viewport viewport) {
+        top_part.drawRect(shapeRenderer, viewport);
+        bottom_part.drawRect(shapeRenderer, viewport);
+    }
+}
+
+
+class GameStateHandler {
 }

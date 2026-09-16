@@ -14,11 +14,11 @@ import com.badlogic.gdx.utils.viewport.FitViewport;
 public class Main implements ApplicationListener {
     ShapeRenderer shapeRenderer;
     FitViewport viewport;
+    Boolean GameStarted = false;
 
     // Define entities
     Birdie bird;
-    Obstacle test_obs_bottom;
-    Obstacle test_obs_up;
+    ObstaclePiece[] pieces;
 
     @Override
     public void create() {
@@ -27,10 +27,11 @@ public class Main implements ApplicationListener {
         viewport = new FitViewport(6, 4);
 
         // Initialize entities
-        bird = new Birdie(0, 1, viewport.getWorldHeight() / 2f);
-        test_obs_bottom = new Obstacle(viewport.getWorldWidth(), 0, 2f);
-        test_obs_up = new Obstacle(viewport.getWorldWidth(), 1f, 2f);
-        GameStateHandler.ObstacleHandler(test_obs_up, test_obs_bottom, viewport);
+        bird = new Birdie(0, 0.6f, viewport.getWorldHeight() / 2f);
+        pieces = new ObstaclePiece[3];
+        pieces[0] = new ObstaclePiece(viewport, 0);
+        pieces[1] = new ObstaclePiece(viewport, -2f);
+        pieces[2] = new ObstaclePiece(viewport, -4f);
     }
 
     @Override
@@ -58,18 +59,30 @@ public class Main implements ApplicationListener {
 
         if (jumpExecuted) {
             bird.jump();
-        }
 
+            if (!GameStarted) GameStarted = true;
+        }
     }
     public void logic () {
         float delta = Gdx.graphics.getDeltaTime();
 
+        if (!GameStarted) return;
         // Update entities
         bird.update(delta, viewport);
-        test_obs_bottom.move(delta, viewport);
-        test_obs_up.move(delta, viewport);
+        pieces[0].updatePiece(delta, viewport);
+        pieces[1].updatePiece(delta, viewport);
+        pieces[2].updatePiece(delta, viewport);
 
-        test_obs_bottom.obstacleControlBottom(test_obs_up, viewport);
+        // Check collision with the obstacles pussy
+        for (int i = 0; i < 3; i++) {
+            Boolean DidTopPartOverlap = pieces[i].top_part.rect.overlaps(bird.rect);
+            Boolean DidBottomPartOverlap = pieces[i].bottom_part.rect.overlaps(bird.rect);
+
+            if (DidTopPartOverlap || DidBottomPartOverlap) {
+                System.out.println("L you got hit by my pipe ;)");
+                System.exit(0);
+            }
+        }
     }
     public void draw () {
         // Clear screen
@@ -82,8 +95,9 @@ public class Main implements ApplicationListener {
         shapeRenderer.rect(0, 0, 6f, 4f);
         shapeRenderer.end();
 
-        test_obs_up.drawRect(shapeRenderer, viewport);
-        test_obs_bottom.drawRect(shapeRenderer, viewport);
+        pieces[0].drawPiece(shapeRenderer, viewport);
+        pieces[1].drawPiece(shapeRenderer, viewport);
+        pieces[2].drawPiece(shapeRenderer, viewport);
         bird.drawRect(shapeRenderer, viewport);
     }
 
