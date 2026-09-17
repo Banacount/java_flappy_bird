@@ -1,6 +1,7 @@
 package io.java.flappy_bird;
 
 import com.badlogic.gdx.ApplicationListener;
+import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Color;
@@ -14,7 +15,7 @@ import com.badlogic.gdx.utils.viewport.FitViewport;
 public class Main implements ApplicationListener {
     ShapeRenderer shapeRenderer;
     FitViewport viewport;
-    Boolean GameStarted = false;
+    GameStateHandler GameState = new GameStateHandler();
 
     // Define entities
     Birdie bird;
@@ -60,21 +61,20 @@ public class Main implements ApplicationListener {
         if (jumpExecuted) {
             bird.jump();
 
-            if (!GameStarted) GameStarted = true;
+            if (!GameState.GameStarted)  GameState.started();
         }
     }
     public void logic () {
         float delta = Gdx.graphics.getDeltaTime();
 
-        if (!GameStarted) return;
+        if (!GameState.GameStarted) return;
         // Update entities
         bird.update(delta, viewport);
-        pieces[0].updatePiece(delta, viewport);
-        pieces[1].updatePiece(delta, viewport);
-        pieces[2].updatePiece(delta, viewport);
 
         // Check collision with the obstacles pussy
         for (int i = 0; i < 3; i++) {
+            pieces[i].updatePiece(delta, viewport);
+
             Boolean DidTopPartOverlap = pieces[i].top_part.rect.overlaps(bird.rect);
             Boolean DidBottomPartOverlap = pieces[i].bottom_part.rect.overlaps(bird.rect);
 
@@ -82,6 +82,8 @@ public class Main implements ApplicationListener {
                 System.out.println("L you got hit by my pipe ;)");
                 System.exit(0);
             }
+
+            pieces[i].pipeHandle(bird, GameState);
         }
     }
     public void draw () {

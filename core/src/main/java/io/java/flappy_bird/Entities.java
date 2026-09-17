@@ -86,23 +86,27 @@ class Obstacle extends GameEntity {
 
     void randomHoleTrigger (Obstacle other, Viewport viewport)
     {
-        float randomHeight = MathUtils.random(0.3f, 3f);
-        float topHeight = (viewport.getWorldHeight() - randomHeight) - 1f;
-        float bottomMarginTopObstacle = randomHeight+1f;
+        float worldHeight = viewport.getWorldHeight();
+        float gap = 1f;
 
-        this.rect.height = randomHeight;
-        other.rect.height = topHeight;
-        other.rect.y = bottomMarginTopObstacle;
+        float bottomPipeYOffset = MathUtils.random(0.3f, 3f);
+        float topPipeYOffset = (worldHeight - bottomPipeYOffset) - gap;
+
+        this.rect.y = -(worldHeight - bottomPipeYOffset);
+        other.rect.y = worldHeight - topPipeYOffset;
     }
 }
 
 class ObstaclePiece {
     Obstacle top_part, bottom_part;
+    Rectangle pipe_rect;
+    Boolean isInPipe = false, isInPipeState = false;
 
     ObstaclePiece (Viewport viewport, float x_offset)
     {
-        bottom_part = new Obstacle(viewport.getWorldWidth() + x_offset, 0, 2f);
-        top_part = new Obstacle(viewport.getWorldWidth() + x_offset, 1f, 2f);
+        bottom_part = new Obstacle(viewport.getWorldWidth() + x_offset, 0, viewport.getWorldHeight());
+        top_part = new Obstacle(viewport.getWorldWidth() + x_offset, 0, viewport.getWorldHeight());
+        pipe_rect = new Rectangle(viewport.getWorldWidth() + x_offset, 0, 0.4f, viewport.getWorldHeight());
 
         bottom_part.randomHoleTrigger(top_part, viewport);
     }
@@ -111,6 +115,22 @@ class ObstaclePiece {
         bottom_part.move(delta, viewport);
         top_part.move(delta, viewport);
         bottom_part.obstacleControlBottom(top_part, viewport);
+        pipe_rect.x = bottom_part.rect.x;
+    }
+
+    void pipeHandle (Birdie bird, GameStateHandler GameState) {
+        // Handles when the bird is inside the pipe
+        if (bird.rect.overlaps(pipe_rect)) isInPipe = true;
+        else isInPipe = false;
+
+        if (isInPipeState != isInPipe)
+        {
+            // Execute one time events here
+            if (isInPipe) System.out.println("You is inside a pipe");
+            else if (!isInPipe) GameState.scored();
+
+            isInPipeState = isInPipe;
+        }
     }
 
     void drawPiece (ShapeRenderer shapeRenderer, Viewport viewport) {
@@ -121,4 +141,17 @@ class ObstaclePiece {
 
 
 class GameStateHandler {
+    Boolean GameStarted = false;
+    int Score = 0;
+
+    GameStateHandler () {}
+
+    void started () {
+        GameStarted = true;
+    }
+
+    void scored () {
+        Score += 1;
+        System.out.printf("Score: %d\n", Score);
+    }
 }
