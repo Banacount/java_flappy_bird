@@ -143,6 +143,7 @@ class ObstaclePiece {
 class GameStateHandler {
     Boolean GameStarted = false;
     int Score = 0;
+    String scoreText = "Score: " + Integer.toString(Score);
 
     GameStateHandler () {}
 
@@ -152,6 +153,6 @@ class GameStateHandler {
 
     void scored () {
         Score += 1;
-        System.out.printf("Score: %d\n", Score);
+        scoreText = "Score: " + Integer.toString(Score);
     }
 }

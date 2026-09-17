@@ -1,12 +1,12 @@
 package io.java.flappy_bird;
 
 import com.badlogic.gdx.ApplicationListener;
-import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 
@@ -16,6 +16,10 @@ public class Main implements ApplicationListener {
     ShapeRenderer shapeRenderer;
     FitViewport viewport;
     GameStateHandler GameState = new GameStateHandler();
+    SpriteBatch spriteBatch;
+
+    // UI things
+    BitmapFont font;
 
     // Define entities
     Birdie bird;
@@ -26,6 +30,9 @@ public class Main implements ApplicationListener {
         // Prepare your application here.
         shapeRenderer = new ShapeRenderer();
         viewport = new FitViewport(6, 4);
+        spriteBatch = new SpriteBatch();
+        font = new BitmapFont();
+        font.setColor(Color.BLACK);
 
         // Initialize entities
         bird = new Birdie(0, 0.6f, viewport.getWorldHeight() / 2f);
@@ -80,6 +87,7 @@ public class Main implements ApplicationListener {
 
             if (DidTopPartOverlap || DidBottomPartOverlap) {
                 System.out.println("L you got hit by my pipe ;)");
+                System.out.printf("YEEEEEY! your score is %d.\n", GameState.Score);
                 System.exit(0);
             }
 
@@ -101,6 +109,10 @@ public class Main implements ApplicationListener {
         pieces[1].drawPiece(shapeRenderer, viewport);
         pieces[2].drawPiece(shapeRenderer, viewport);
         bird.drawRect(shapeRenderer, viewport);
+
+        spriteBatch.begin();
+        font.draw(spriteBatch, GameState.scoreText, 40, 600);
+        spriteBatch.end();
     }
 
     @Override
@@ -116,6 +128,9 @@ public class Main implements ApplicationListener {
     @Override
     public void dispose() {
         // Destroy application's resources here.
+        spriteBatch.dispose();
+        font.dispose();
+        shapeRenderer.dispose();
     }
 }
 
