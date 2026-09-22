@@ -27,15 +27,16 @@ class GameEntity {
 class Birdie extends GameEntity {
     float jumpHeight;
     float velocity_x = 0, velocity_y = 0;
+    GameStateHandler _GameConfig;
 
-    Birdie (float jump_height, float x, float y) {
+    Birdie (float jump_height, float x, float y, GameStateHandler gameConfig) {
         super(new Rectangle(x, y, 0.3f, 0.3f));
         jumpHeight = (jump_height <= 0) ? 2.3f : jump_height;
+        _GameConfig = gameConfig;
     }
 
-    void jump () {
-        this.velocity_y = 0;
-        this.velocity_y += jumpHeight;
+    void jump (float multiplier) {
+        this.velocity_y = jumpHeight * multiplier;
     }
 
     void update (float delta_time, Viewport viewport) {
@@ -45,12 +46,6 @@ class Birdie extends GameEntity {
 
         if (this.rect.y > 0)
             this.velocity_y += delta_time * GameConfig.GRAVITY;
-        else {
-            this.velocity_y = 0;
-            this.rect.y = viewport.getWorldHeight() / 2;
-            System.out.println("L you fukin folded");
-            System.exit(0);
-        }
     }
 }
 
@@ -101,17 +96,23 @@ class ObstaclePiece {
     Obstacle top_part, bottom_part;
     Rectangle pipe_rect;
     Boolean isInPipe = false, isInPipeState = false;
+    float PipeSpeed = 1f;
 
-    ObstaclePiece (Viewport viewport, float x_offset)
+    ObstaclePiece (Viewport viewport, float x_offset, float pipeSpeed)
     {
         bottom_part = new Obstacle(viewport.getWorldWidth() + x_offset, 0, viewport.getWorldHeight());
         top_part = new Obstacle(viewport.getWorldWidth() + x_offset, 0, viewport.getWorldHeight());
         pipe_rect = new Rectangle(viewport.getWorldWidth() + x_offset, 0, 0.4f, viewport.getWorldHeight());
 
+        if (pipeSpeed > 0) PipeSpeed = pipeSpeed;
+
         bottom_part.randomHoleTrigger(top_part, viewport);
     }
 
     void updatePiece (float delta, Viewport viewport) {
+        top_part.obstacleSlideSpeed = PipeSpeed;
+        bottom_part.obstacleSlideSpeed = PipeSpeed;
+
         bottom_part.move(delta, viewport);
         top_part.move(delta, viewport);
         bottom_part.obstacleControlBottom(top_part, viewport);
@@ -144,6 +145,7 @@ class GameStateHandler {
     Boolean GameStarted = false;
     int Score = 0;
     String scoreText = "Score: " + Integer.toString(Score);
+    float PipeSpeed = 1f;
 
     GameStateHandler () {}
 
@@ -153,6 +155,22 @@ class GameStateHandler {
 
     void scored () {
         Score += 1;
-        scoreText = "Score: " + Integer.toString(Score);
+        PipeSpeed = 1f;
+    }
+
+    void failHandle (ObstaclePiece[] pieces, Birdie bird, Viewport viewport) {
+        for (int i = 0; i < 3; i++) {
+            pieces[i].isInPipeState = false;
+            pieces[i].isInPipe = false;
+            pieces[i].bottom_part.rect.x = viewport.getWorldWidth() - (i * 2);
+            pieces[i].top_part.rect.x = viewport.getWorldWidth() - (i * 2);
+        }
+
+        bird.rect.y = viewport.getWorldHeight() / 2f;
+
+        System.out.printf("YEEEEEY! your score is %d.\n", Score);
+        Score = 0;
+        PipeSpeed = 1f;
+        GameStarted = false;
     }
 }

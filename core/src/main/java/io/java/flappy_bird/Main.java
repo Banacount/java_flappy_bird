@@ -35,11 +35,11 @@ public class Main implements ApplicationListener {
         font.setColor(Color.BLACK);
 
         // Initialize entities
-        bird = new Birdie(0, 0.6f, viewport.getWorldHeight() / 2f);
+        bird = new Birdie(0, 0.6f, viewport.getWorldHeight() / 2f, GameState);
         pieces = new ObstaclePiece[3];
-        pieces[0] = new ObstaclePiece(viewport, 0);
-        pieces[1] = new ObstaclePiece(viewport, -2f);
-        pieces[2] = new ObstaclePiece(viewport, -4f);
+        pieces[0] = new ObstaclePiece(viewport, 0, 0);
+        pieces[1] = new ObstaclePiece(viewport, -2f, 0);
+        pieces[2] = new ObstaclePiece(viewport, -4f, 0);
     }
 
     @Override
@@ -66,29 +66,50 @@ public class Main implements ApplicationListener {
         );
 
         if (jumpExecuted) {
-            bird.jump();
+            bird.jump(1);
 
             if (!GameState.GameStarted)  GameState.started();
         }
+
+        if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_1)) {
+            GameState.PipeSpeed = 10f;
+            bird.velocity_y = 0;
+        }
+
+        if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_2)) {
+            bird.jump(2);
+        }
+
     }
     public void logic () {
         float delta = Gdx.graphics.getDeltaTime();
+        GameState.scoreText = "Score: " + Integer.toString(GameState.Score);
 
+        // Very bare bone 'pause' mechanism
         if (!GameState.GameStarted) return;
+
         // Update entities
         bird.update(delta, viewport);
 
         // Check collision with the obstacles pussy
         for (int i = 0; i < 3; i++) {
             pieces[i].updatePiece(delta, viewport);
+            pieces[i].PipeSpeed = GameState.PipeSpeed;
 
             Boolean DidTopPartOverlap = pieces[i].top_part.rect.overlaps(bird.rect);
             Boolean DidBottomPartOverlap = pieces[i].bottom_part.rect.overlaps(bird.rect);
 
             if (DidTopPartOverlap || DidBottomPartOverlap) {
-                System.out.println("L you got hit by my pipe ;)");
-                System.out.printf("YEEEEEY! your score is %d.\n", GameState.Score);
-                System.exit(0);
+                System.out.println("Failed event: Overlapped with pipe");
+                GameState.failHandle(pieces, bird, viewport);
+                break;
+            }
+
+            if (bird.rect.y < 0 || bird.rect.y > viewport.getWorldHeight())
+            {
+                System.out.println("Failed event: Out of scope");
+                GameState.failHandle(pieces, bird, viewport);
+                break;
             }
 
             pieces[i].pipeHandle(bird, GameState);
